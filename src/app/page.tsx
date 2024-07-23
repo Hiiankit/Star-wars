@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,14 +54,15 @@ export default function People() {
   const [url, setUrl] = useState("https://www.swapi.tech/api/people");
 
   useEffect(() => {
-    fetch(url)
-      .then((response) => response.json())
-      .then(async (data) => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+
         const detailedResults = await Promise.all(
-          data.results.map(async (person: any) => {
-            const personData = await fetch(person.url).then((res) =>
-              res.json()
-            );
+          result.results.map(async (person: any) => {
+            const personResponse = await fetch(person.url);
+            const personData = await personResponse.json();
             const properties = personData.result.properties;
             return {
               name: properties.name,
@@ -72,22 +73,27 @@ export default function People() {
             };
           })
         );
+
         setData({
           results: detailedResults,
-          next: data.next,
-          previous: data.previous,
+          next: result.next,
+          previous: result.previous,
         });
-      })
-      .catch((error) => console.error("Error fetching data:", error));
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, [url]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (data?.previous) setUrl(data.previous);
-  };
+  }, [data]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (data?.next) setUrl(data.next);
-  };
+  }, [data]);
 
   return (
     <div className="container mx-auto py-10">
