@@ -36,26 +36,13 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-interface Film {
-  title: string;
-  url: string;
-}
-
-interface Character {
-  name: string;
-  films: Film[];
-  url: string;
-}
-
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
-    null
-  );
+
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [pagination, setPagination] = useState({
     pageIndex: 1,
@@ -80,22 +67,6 @@ export function DataTable<TData, TValue>({
 
     onColumnFiltersChange: setColumnFilters,
   });
-
-  const handleRowClick = async (character: Character) => {
-    const filmData = await Promise.all(
-      character.films.map(async (filmUrl) => {
-        const response = await fetch(filmUrl);
-        const film = await response.json();
-        return { title: film.title, url: filmUrl };
-      })
-    );
-
-    setSelectedCharacter({
-      ...character,
-      films: filmData,
-    });
-    setIsSheetOpen(true);
-  };
 
   return (
     <>
@@ -135,7 +106,6 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => handleRowClick(row.original)}
                   className="cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -161,45 +131,6 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {selectedCharacter && (
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{selectedCharacter.name}</SheetTitle>
-              <SheetDescription>
-                <p>
-                  <strong>Films:</strong>
-                  <ul>
-                    {selectedCharacter.films.map((film, index) => (
-                      <li key={index}>
-                        <a
-                          href={film.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-500 underline"
-                        >
-                          {film.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </p>
-                <p>
-                  <strong>Character URL:</strong>{" "}
-                  <a
-                    href={selectedCharacter.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 underline"
-                  >
-                    {selectedCharacter.url}
-                  </a>
-                </p>
-              </SheetDescription>
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
-      )}
     </>
   );
 }
