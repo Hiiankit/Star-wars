@@ -43,7 +43,6 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 10,
