@@ -29,7 +29,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 
 interface DataTableProps<TData, TValue> {
@@ -37,9 +36,15 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
+interface Film {
+  title: string;
+  url: string;
+}
+
 interface Character {
   name: string;
-  films: string[];
+  films: Film[];
+  url: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -52,6 +57,10 @@ export function DataTable<TData, TValue>({
     null
   );
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [pagination, setPagination] = useState({
+    pageIndex: 1,
+    pageSize: 10,
+  });
 
   const table = useReactTable({
     data,
@@ -59,9 +68,11 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       columnFilters,
+      pagination,
     },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
     onSortingChange: setSorting,
 
     getSortedRowModel: getSortedRowModel(),
@@ -74,13 +85,14 @@ export function DataTable<TData, TValue>({
     const filmData = await Promise.all(
       character.films.map(async (filmUrl) => {
         const response = await fetch(filmUrl);
-        return response.json();
+        const film = await response.json();
+        return { title: film.title, url: filmUrl };
       })
     );
 
     setSelectedCharacter({
       ...character,
-      films: filmData.map((film) => film.title),
+      films: filmData,
     });
     setIsSheetOpen(true);
   };
@@ -175,12 +187,34 @@ export function DataTable<TData, TValue>({
             <SheetHeader>
               <SheetTitle>{selectedCharacter.name}</SheetTitle>
               <SheetDescription>
-                Films:
-                <ul>
-                  {selectedCharacter.films.map((film, index) => (
-                    <li key={index}>{film}</li>
-                  ))}
-                </ul>
+                <p>
+                  <strong>Films:</strong>
+                  <ul>
+                    {selectedCharacter.films.map((film, index) => (
+                      <li key={index}>
+                        <a
+                          href={film.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 underline"
+                        >
+                          {film.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </p>
+                <p>
+                  <strong>Character URL:</strong>{" "}
+                  <a
+                    href={selectedCharacter.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline"
+                  >
+                    {selectedCharacter.url}
+                  </a>
+                </p>
               </SheetDescription>
             </SheetHeader>
           </SheetContent>

@@ -3,7 +3,7 @@ import { DataTable } from "@/components/data-table";
 
 async function getPeoples(): Promise<Peoples[]> {
   const peoples: Peoples[] = [];
-  let nextPage = 'https://swapi.dev/api/people';
+  let nextPage = "https://swapi.dev/api/people";
 
   while (nextPage) {
     const res = await fetch(nextPage);
@@ -20,7 +20,7 @@ export default async function Page() {
 
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={data}/>
+      <DataTable columns={columns} data={data} />
     </div>
   );
 }
