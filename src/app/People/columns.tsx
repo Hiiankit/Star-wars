@@ -1,9 +1,10 @@
-"use client"
-
+'use client'
+import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import {ArrowUpDown} from 'lucide-react'
+import { Button } from "@/components/ui/button";
 
-// This type is used to define the shape of our data.
-export type People = {
+export type Peoples = {
   name: string;
   height: string;
   mass: string;
@@ -11,10 +12,20 @@ export type People = {
   hair_color: string;
 };
 
-export const columns: ColumnDef<People>[] = [
+export const columns: ColumnDef<Peoples>[] = [
   {
     accessorKey: "name",
-    header: "Name",
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
   },
   {
     accessorKey: "height",
