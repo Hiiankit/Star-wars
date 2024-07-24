@@ -46,6 +46,46 @@ const columns: ColumnDef<Peoples>[] = [
   },
 ];
 
+const fetchPersonDetails = async (person: any): Promise<Peoples> => {
+  const films = await Promise.all(
+    person.films.map(async (filmUrl: string) => {
+      const filmResponse = await fetch(filmUrl);
+      const filmData = await filmResponse.json();
+      return filmData.title;
+    })
+  );
+  return {
+    name: person.name,
+    height: person.height,
+    mass: person.mass,
+    gender: person.gender,
+    hair_color: person.hair_color,
+    films,
+  };
+};
+
+const fetchPeopleData = async (
+  url: string
+): Promise<{
+  results: Peoples[];
+  next?: string;
+  previous?: string;
+}> => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Network response was not ok");
+
+  const result = await response.json();
+  const detailedResults: Peoples[] = await Promise.all(
+    result.results.map(fetchPersonDetails)
+  );
+
+  return {
+    results: detailedResults,
+    next: result.next,
+    previous: result.previous,
+  };
+};
+
 export default function People() {
   const [data, setData] = useState<{
     results: Peoples[];
@@ -65,45 +105,14 @@ export default function People() {
       setError(null);
 
       try {
-        // Construct the URL based on the search query or pagination
-        let apiUrl = searchQuery
+        const apiUrl = searchQuery
           ? `https://swapi.dev/api/people/?search=${searchQuery}`
           : paginationUrl;
 
         console.log(`Fetching data from URL: ${apiUrl}`); // Log the URL
-
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("Network response was not ok");
-
-        const result = await response.json();
+        const result = await fetchPeopleData(apiUrl);
         console.log("API response:", result); // Log the API response
-
-        // Process the results
-        const detailedResults: Peoples[] = await Promise.all(
-          result.results.map(async (person: any) => {
-            const films = await Promise.all(
-              person.films.map(async (filmUrl: string) => {
-                const filmResponse = await fetch(filmUrl);
-                const filmData = await filmResponse.json();
-                return filmData.title;
-              })
-            );
-            return {
-              name: person.name,
-              height: person.height,
-              mass: person.mass,
-              gender: person.gender,
-              hair_color: person.hair_color,
-              films,
-            };
-          })
-        );
-
-        setData({
-          results: detailedResults,
-          next: result.next,
-          previous: result.previous,
-        });
+        setData(result);
       } catch (error) {
         console.error("Error fetching data:", error); // Log the error
         setError("Something went wrong");
