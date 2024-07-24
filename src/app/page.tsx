@@ -1,10 +1,10 @@
 "use client";
-
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
+import { Input } from "@/components/ui/input";
 
 export type Peoples = {
   name: string;
@@ -51,12 +51,25 @@ export default function People() {
     next?: string;
     previous?: string;
   } | null>(null);
-  const [url, setUrl] = useState("https://www.swapi.tech/api/people");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [paginationUrl, setPaginationUrl] = useState(
+    "https://www.swapi.tech/api/people"
+  );
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(url);
+        let apiUrl = paginationUrl;
+
+        // Only modify URL for search if searchQuery is present
+        if (searchQuery) {
+          apiUrl = `https://www.swapi.tech/api/people?search=${searchQuery}`;
+          setPaginationUrl(apiUrl); // Update paginationUrl to the search URL
+        }
+
+        const response = await fetch(apiUrl);
         const result = await response.json();
 
         const detailedResults = await Promise.all(
@@ -81,32 +94,57 @@ export default function People() {
         });
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [url]);
+  }, [paginationUrl, searchQuery]);
 
   const handlePrevious = useCallback(() => {
-    if (data?.previous) setUrl(data.previous);
+    if (data?.previous) setPaginationUrl(data.previous);
   }, [data]);
 
   const handleNext = useCallback(() => {
-    if (data?.next) setUrl(data.next);
+    if (data?.next) setPaginationUrl(data.next);
   }, [data]);
+
+  const handleSearch = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(event.target.value);
+    },
+    []
+  );
+
+  // Filtered data based on search query
+  const filteredData = searchQuery
+    ? data?.results.filter((person) =>
+        person.name.toLowerCase().includes(searchQuery.toLowerCase())
+      ) || []
+    : data?.results || [];
 
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-4">People</h1>
-      {data ? (
-        <div>
-          <DataTable columns={columns} data={data.results} />
+      <div className="flex items-center py-3">
+        <Input
+          placeholder="Search by name..."
+          value={searchQuery}
+          onChange={handleSearch}
+          className="max-w-xs"
+        />
+      </div>
+
+      <div>
+        <DataTable columns={columns} data={filteredData} />
+        {!searchQuery && (
           <div className="flex items-center justify-end space-x-2 py-4">
             <Button
               variant="outline"
               size="sm"
               onClick={handlePrevious}
-              disabled={!data.previous}
+              disabled={!data?.previous}
             >
               Previous
             </Button>
@@ -114,15 +152,13 @@ export default function People() {
               variant="outline"
               size="sm"
               onClick={handleNext}
-              disabled={!data.next}
+              disabled={!data?.next}
             >
               Next
             </Button>
           </div>
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
+        )}
+      </div>
     </div>
   );
 }
