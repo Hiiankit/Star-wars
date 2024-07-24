@@ -148,7 +148,7 @@ export default function People() {
     : data?.results || [];
 
   return (
-    <div className="bg-cover bg-center h-screen bg-[url('./swtfa11.jpg')] bg-blur-sm">
+    <div className="bg-cover bg-center h-screen bg-[url('./swtfa11.jpg')] bg-black bg-blur-sm">
       <div className="container mx-auto py-1 ">
         <h1 className="text-2xl text-yellow-200 font-semibold">People</h1>
         <div className="flex items-center py-3 ">

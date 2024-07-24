@@ -155,7 +155,9 @@ export function DataTable<TData extends PersonData, TValue>({
                       <li key={index}>
                         <a
                           className="text-white text-sm flex flex-col items-center py-1"
-                          href={film}
+                          href={`https://www.google.com/search?q=${encodeURIComponent(
+                            film
+                          )}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
