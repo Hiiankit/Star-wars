@@ -95,7 +95,7 @@ export function DataTable<TData extends PersonData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead className="text-white" key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -144,16 +144,17 @@ export function DataTable<TData extends PersonData, TValue>({
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetContent className="bg-transparent backdrop-blur-md border-none backdrop-grayscale">
             <SheetHeader>
-              <SheetTitle className="text-white">
+              <SheetTitle className="text-white flex justify-center items-center text-yellow-300">
                 {selectedPerson.name}
               </SheetTitle>
               <SheetDescription>
-                <p>
-                  Films:
-                  <ul className="text-white">
+                <p className="text-white py-5 flex flex-col justify-center items-center text-lg text-yellow-500 ">
+                  Films
+                  <ul className="pt-5 text-yellow-100">
                     {selectedPerson.films.map((film, index) => (
                       <li key={index}>
                         <a
+                          className="text-white text-sm flex flex-col items-center py-1"
                           href={film}
                           target="_blank"
                           rel="noopener noreferrer"

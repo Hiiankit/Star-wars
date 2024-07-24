@@ -150,7 +150,7 @@ export default function People() {
   return (
     <div className="bg-cover bg-center h-screen bg-[url('./swtfa11.jpg')] bg-blur-sm">
       <div className="container mx-auto py-1 ">
-        <h1 className="text-2xl font-bold">People</h1>
+        <h1 className="text-2xl text-yellow-200 font-semibold">People</h1>
         <div className="flex items-center py-3 ">
           <Input
             placeholder="Search by name..."
@@ -176,7 +176,7 @@ export default function People() {
                 Previous
               </Button>
               <Button
-                className="bg-transparent backdrop-blur-sm"
+                className="bg-transparent backdrop-blur-sm hover:bg-none"
                 variant="outline"
                 size="sm"
                 onClick={handleNext}
