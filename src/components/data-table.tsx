@@ -51,7 +51,9 @@ export function DataTable<TData, TValue>({
   // Memoized filtered data based on the search query
   const filteredData = React.useMemo(() => {
     return data.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      (item as { name: string }).name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
     );
   }, [data, searchQuery]);
 
