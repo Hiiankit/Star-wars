@@ -1,5 +1,3 @@
-// DataTable.tsx
-
 "use client";
 import * as React from "react";
 import { useState } from "react";
@@ -26,30 +24,38 @@ import {
 import { Input } from "@/components/ui/input";
 import SheetComponent from "@/app/sheet/sheetcomp";
 
+// Define the DataTable component with generics for data and value types
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: ColumnDef<TData, TValue>[]; // Column definitions for the table
+  data: TData[]; // Data to display in the table
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  // State for sorting
   const [sorting, setSorting] = useState<SortingState>([]);
+  // State for column filters
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  // State for pagination
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 10,
   });
-  const [searchQuery, setSearchQuery] = useState(""); // Added state for search query
+  // State for search query
+  const [searchQuery, setSearchQuery] = useState("");
+  // State to manage the sheet component visibility
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  // Memoized filtered data based on the search query
   const filteredData = React.useMemo(() => {
     return data.filter((item) =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [data, searchQuery]);
 
+  // Initialize React Table with various hooks and configurations
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -69,6 +75,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <>
+      {/* Table UI component */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -95,7 +102,7 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                   className="cursor-pointer"
                   onClick={() => {
-                    setIsSheetOpen(true);
+                    setIsSheetOpen(true); // Open the sheet when a row is clicked
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -121,6 +128,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      {/* Sheet component for additional details or actions */}
       <SheetComponent
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
