@@ -106,7 +106,7 @@ export default function People() {
         });
       } catch (error) {
         console.error("Error fetching data:", error); // Log the error
-        setError(error.message || "Something went wrong");
+        setError("Something went wrong");
       } finally {
         setLoading(false);
       }
