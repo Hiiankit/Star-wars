@@ -1,11 +1,10 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { Input } from "@/components/ui/input";
-import { url } from "inspector";
 
 export type Peoples = {
   name: string;
@@ -133,20 +132,6 @@ export default function People() {
     if (data?.next) setPaginationUrl(data.next);
   }, [data]);
 
-  const handleSearch = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchQuery(event.target.value);
-    },
-    []
-  );
-
-  // Filtered data based on search query
-  const filteredData = searchQuery
-    ? data?.results.filter((person) =>
-        person.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ) || []
-    : data?.results || [];
-
   return (
     <div className="bg-cover bg-center h-screen bg-[url('./swtfa11.jpg')] bg-black bg-blur-sm">
       <div className="container mx-auto py-1 ">
@@ -155,7 +140,7 @@ export default function People() {
           <Input
             placeholder="Search by name..."
             value={searchQuery}
-            onChange={handleSearch}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-xs bg-transparent backdrop-blur-sm text-white"
           />
         </div>
@@ -163,7 +148,12 @@ export default function People() {
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="text-white backdrop-blur-md ">
-          <DataTable columns={columns} data={filteredData} />
+          <DataTable
+            columns={columns}
+            data={data?.results ?? []}
+            loading={loading}
+          />
+
           {!searchQuery && data && (
             <div className="flex  items-center justify-end space-x-2 pt-2">
               <Button
