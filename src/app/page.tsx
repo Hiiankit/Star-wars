@@ -5,6 +5,7 @@ import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { Input } from "@/components/ui/input";
+import { url } from "inspector";
 
 export type Peoples = {
   name: string;
@@ -147,42 +148,45 @@ export default function People() {
     : data?.results || [];
 
   return (
-    <div className="container mx-auto py-5">
-      <h1 className="text-2xl font-bold">People</h1>
-      <div className="flex items-center py-3">
-        <Input
-          placeholder="Search by name..."
-          value={searchQuery}
-          onChange={handleSearch}
-          className="max-w-xs"
-        />
-      </div>
+    <div className="bg-cover bg-center h-screen bg-[url('./swtfa11.jpg')] bg-blur-sm">
+      <div className="container mx-auto py-1 ">
+        <h1 className="text-2xl font-bold">People</h1>
+        <div className="flex items-center py-3 ">
+          <Input
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="max-w-xs bg-transparent backdrop-blur-sm text-white"
+          />
+        </div>
 
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500">{error}</p>}
 
-      <div>
-        <DataTable columns={columns} data={filteredData} />
-        {!searchQuery && data && (
-          <div className="flex items-center justify-end space-x-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevious}
-              disabled={!data.previous}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNext}
-              disabled={!data.next}
-            >
-              Next
-            </Button>
-          </div>
-        )}
+        <div className="text-white backdrop-blur-md ">
+          <DataTable columns={columns} data={filteredData} />
+          {!searchQuery && data && (
+            <div className="flex  items-center justify-end space-x-2 pt-2">
+              <Button
+                className="bg-transparent backdrop-blur-sm"
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={!data.previous}
+              >
+                Previous
+              </Button>
+              <Button
+                className="bg-transparent backdrop-blur-sm"
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={!data.next}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

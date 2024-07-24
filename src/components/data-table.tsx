@@ -139,15 +139,18 @@ export function DataTable<TData extends PersonData, TValue>({
           </TableBody>
         </Table>
       </div>
+
       {selectedPerson && (
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent>
+          <SheetContent className="bg-transparent backdrop-blur-md border-none backdrop-grayscale">
             <SheetHeader>
-              <SheetTitle>{selectedPerson.name}</SheetTitle>
+              <SheetTitle className="text-white">
+                {selectedPerson.name}
+              </SheetTitle>
               <SheetDescription>
                 <p>
                   Films:
-                  <ul>
+                  <ul className="text-white">
                     {selectedPerson.films.map((film, index) => (
                       <li key={index}>
                         <a
