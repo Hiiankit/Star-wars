@@ -21,12 +21,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import SheetComponent from "@/app/sheet/sheetcomp";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
-// Define an interface with the expected properties
 interface PersonData {
   name: string;
+  height: string;
+  mass: string;
+  gender: string;
+  hair_color: string;
+  films: string[];
 }
 
 interface DataTableProps<TData extends PersonData, TValue> {
@@ -46,6 +55,7 @@ export function DataTable<TData extends PersonData, TValue>({
   });
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState<PersonData | null>(null); // State for selected person
 
   // Memoized filtered data based on the search query
   const filteredData = React.useMemo(() => {
@@ -72,9 +82,13 @@ export function DataTable<TData extends PersonData, TValue>({
     onColumnFiltersChange: setColumnFilters,
   });
 
+  const handleRowClick = (person: PersonData) => {
+    setSelectedPerson(person);
+    setIsSheetOpen(true);
+  };
+
   return (
     <>
-      {/* Table UI component */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -100,9 +114,7 @@ export function DataTable<TData extends PersonData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className="cursor-pointer"
-                  onClick={() => {
-                    setIsSheetOpen(true); // Open the sheet when a row is clicked
-                  }}
+                  onClick={() => handleRowClick(row.original)} // Pass the row's data to the handler
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -127,13 +139,33 @@ export function DataTable<TData extends PersonData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {/* Sheet component for additional details or actions */}
-      <SheetComponent
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        title="Are you absolutely sure?"
-        description="This action cannot be undone. This will permanently delete your account and remove your data from our servers."
-      />
+      {selectedPerson && (
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{selectedPerson.name}</SheetTitle>
+              <SheetDescription>
+                <p>
+                  Films:
+                  <ul>
+                    {selectedPerson.films.map((film, index) => (
+                      <li key={index}>
+                        <a
+                          href={film}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {film}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </p>
+              </SheetDescription>
+            </SheetHeader>
+          </SheetContent>
+        </Sheet>
+      )}
     </>
   );
 }

@@ -12,6 +12,7 @@ export type Peoples = {
   mass: string;
   gender: string;
   hair_color: string;
+  films: string[];
 };
 
 const columns: ColumnDef<Peoples>[] = [
@@ -53,36 +54,47 @@ export default function People() {
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [paginationUrl, setPaginationUrl] = useState(
-    "https://www.swapi.tech/api/people"
+    "https://swapi.dev/api/people/"
   );
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      try {
-        let apiUrl = paginationUrl;
+      setError(null);
 
-        // Only modify URL for search if searchQuery is present
-        if (searchQuery) {
-          apiUrl = `https://www.swapi.tech/api/people?search=${searchQuery}`;
-          setPaginationUrl(apiUrl); // Update paginationUrl to the search URL
-        }
+      try {
+        // Construct the URL based on the search query or pagination
+        let apiUrl = searchQuery
+          ? `https://swapi.dev/api/people/?search=${searchQuery}`
+          : paginationUrl;
+
+        console.log(`Fetching data from URL: ${apiUrl}`); // Log the URL
 
         const response = await fetch(apiUrl);
-        const result = await response.json();
+        if (!response.ok) throw new Error("Network response was not ok");
 
-        const detailedResults = await Promise.all(
+        const result = await response.json();
+        console.log("API response:", result); // Log the API response
+
+        // Process the results
+        const detailedResults: Peoples[] = await Promise.all(
           result.results.map(async (person: any) => {
-            const personResponse = await fetch(person.url);
-            const personData = await personResponse.json();
-            const properties = personData.result.properties;
+            const films = await Promise.all(
+              person.films.map(async (filmUrl: string) => {
+                const filmResponse = await fetch(filmUrl);
+                const filmData = await filmResponse.json();
+                return filmData.title;
+              })
+            );
             return {
-              name: properties.name,
-              height: properties.height,
-              mass: properties.mass,
-              gender: properties.gender,
-              hair_color: properties.hair_color,
+              name: person.name,
+              height: person.height,
+              mass: person.mass,
+              gender: person.gender,
+              hair_color: person.hair_color,
+              films,
             };
           })
         );
@@ -93,7 +105,8 @@ export default function People() {
           previous: result.previous,
         });
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching data:", error); // Log the error
+        setError(error.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
@@ -126,7 +139,7 @@ export default function People() {
 
   return (
     <div className="container mx-auto py-5">
-      <h1 className="text-2xl font-bold ">People</h1>
+      <h1 className="text-2xl font-bold">People</h1>
       <div className="flex items-center py-3">
         <Input
           placeholder="Search by name..."
@@ -136,15 +149,18 @@ export default function People() {
         />
       </div>
 
+      {loading && <p>Loading...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+
       <div>
         <DataTable columns={columns} data={filteredData} />
-        {!searchQuery && (
+        {!searchQuery && data && (
           <div className="flex items-center justify-end space-x-2 pt-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handlePrevious}
-              disabled={!data?.previous}
+              disabled={!data.previous}
             >
               Previous
             </Button>
@@ -152,7 +168,7 @@ export default function People() {
               variant="outline"
               size="sm"
               onClick={handleNext}
-              disabled={!data?.next}
+              disabled={!data.next}
             >
               Next
             </Button>
