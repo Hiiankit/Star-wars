@@ -125,8 +125,8 @@ export default function People() {
     : data?.results || [];
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-4">People</h1>
+    <div className="container mx-auto py-5">
+      <h1 className="text-2xl font-bold ">People</h1>
       <div className="flex items-center py-3">
         <Input
           placeholder="Search by name..."
@@ -139,7 +139,7 @@ export default function People() {
       <div>
         <DataTable columns={columns} data={filteredData} />
         {!searchQuery && (
-          <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="flex items-center justify-end space-x-2 pt-2">
             <Button
               variant="outline"
               size="sm"
