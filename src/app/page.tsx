@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { Input } from "@/components/ui/input";
 
+// Specifying the structure of the data we're dealing with.
 export type Peoples = {
   name: string;
   height: string;
@@ -15,6 +16,7 @@ export type Peoples = {
   films: string[];
 };
 
+// Defines columns for the data table
 const columns: ColumnDef<Peoples>[] = [
   {
     accessorKey: "name",
@@ -46,6 +48,7 @@ const columns: ColumnDef<Peoples>[] = [
   },
 ];
 
+//Data Fetching Functions
 const fetchPersonDetails = async (person: any): Promise<Peoples> => {
   const films = await Promise.all(
     person.films.map(async (filmUrl: string) => {
@@ -86,6 +89,7 @@ const fetchPeopleData = async (
   };
 };
 
+//Component State and Effects
 export default function People() {
   const [data, setData] = useState<{
     results: Peoples[];
@@ -124,6 +128,7 @@ export default function People() {
     fetchData();
   }, [paginationUrl, searchQuery]);
 
+  //Pagination Handlers
   const handlePrevious = useCallback(() => {
     if (data?.previous) setPaginationUrl(data.previous);
   }, [data]);

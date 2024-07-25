@@ -29,6 +29,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
+//Defines PersonData for the structure of each person
 interface PersonData {
   name: string;
   height: string;
@@ -44,6 +45,7 @@ interface DataTableProps<TData extends PersonData, TValue> {
   loading: boolean;
 }
 
+//DataTable Component
 export function DataTable<TData extends PersonData, TValue>({
   columns,
   data,
