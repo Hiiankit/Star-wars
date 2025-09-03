@@ -1,12 +1,29 @@
 "use client";
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table";
 import { Input } from "@/components/ui/input";
 
-// Specifying the structure of the data we're dealing with.
+// ----------------- Config & Helpers -----------------
+const SWAPI_BASE =
+  process.env.NEXT_PUBLIC_SWAPI_BASE ?? "https://swapi.py4e.com/api/";
+
+// replaces any absolute swapi.dev URLs with our base mirror
+function normalizeSwapiUrl(url?: string | null): string {
+  if (!url) return `${SWAPI_BASE}people/`;
+  return url.replace(/^https?:\/\/swapi\.dev\/api\//, SWAPI_BASE);
+}
+
+async function assertOk(res: Response, url: string) {
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`HTTP ${res.status} ${res.statusText} for ${url} ${text.slice(0, 120)}`);
+  }
+}
+
+// ----------------- Types & Table -----------------
 export type Peoples = {
   name: string;
   height: string;
@@ -16,7 +33,6 @@ export type Peoples = {
   films: string[];
 };
 
-// Defines columns for the data table
 const columns: ColumnDef<Peoples>[] = [
   {
     accessorKey: "name",
@@ -30,30 +46,20 @@ const columns: ColumnDef<Peoples>[] = [
       </Button>
     ),
   },
-  {
-    accessorKey: "height",
-    header: "Height",
-  },
-  {
-    accessorKey: "mass",
-    header: "Mass",
-  },
-  {
-    accessorKey: "gender",
-    header: "Gender",
-  },
-  {
-    accessorKey: "hair_color",
-    header: "Hair Color",
-  },
+  { accessorKey: "height", header: "Height" },
+  { accessorKey: "mass", header: "Mass" },
+  { accessorKey: "gender", header: "Gender" },
+  { accessorKey: "hair_color", header: "Hair Color" },
 ];
 
-//Data Fetching Functions
+// ----------------- Data Fetching -----------------
 const fetchPersonDetails = async (person: any): Promise<Peoples> => {
   const films = await Promise.all(
-    person.films.map(async (filmUrl: string) => {
-      const filmResponse = await fetch(filmUrl);
-      const filmData = await filmResponse.json();
+    (person.films ?? []).map(async (filmUrl: string) => {
+      const url = normalizeSwapiUrl(filmUrl); // <- normalize film URLs too
+      const res = await fetch(url, { cache: "no-store" });
+      await assertOk(res, url);
+      const filmData = await res.json();
       return filmData.title;
     })
   );
@@ -69,37 +75,34 @@ const fetchPersonDetails = async (person: any): Promise<Peoples> => {
 
 const fetchPeopleData = async (
   url: string
-): Promise<{
-  results: Peoples[];
-  next?: string;
-  previous?: string;
-}> => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Network response was not ok");
+): Promise<{ results: Peoples[]; next?: string; previous?: string }> => {
+  const finalUrl = normalizeSwapiUrl(url);
+  const response = await fetch(finalUrl, { cache: "no-store" });
+  await assertOk(response, finalUrl);
 
   const result = await response.json();
+
   const detailedResults: Peoples[] = await Promise.all(
-    result.results.map(fetchPersonDetails)
+    (result.results ?? []).map(fetchPersonDetails)
   );
 
   return {
     results: detailedResults,
-    next: result.next,
-    previous: result.previous,
+    next: normalizeSwapiUrl(result.next),       // <- normalize pagination
+    previous: normalizeSwapiUrl(result.previous),
   };
 };
 
-//Component State and Effects
+// ----------------- Component -----------------
 export default function People() {
   const [data, setData] = useState<{
     results: Peoples[];
     next?: string;
     previous?: string;
   } | null>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [paginationUrl, setPaginationUrl] = useState(
-    "https://swapi.dev/api/people/"
-  );
+  const [paginationUrl, setPaginationUrl] = useState(`${SWAPI_BASE}people/`);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,19 +110,19 @@ export default function People() {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-
       try {
         const apiUrl = searchQuery
-          ? `https://swapi.dev/api/people/?search=${searchQuery}`
+          ? `${SWAPI_BASE}people/?search=${encodeURIComponent(searchQuery)}`
           : paginationUrl;
 
-        console.log(`Fetching data from URL: ${apiUrl}`); // Log the URL
+        console.log("Fetching:", apiUrl);
         const result = await fetchPeopleData(apiUrl);
-        console.log("API response:", result); // Log the API response
+        console.log("API response:", result);
         setData(result);
-      } catch (error) {
-        console.error("Error fetching data:", error); // Log the error
-        setError("Something went wrong");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("Error fetching data:", msg);
+        setError(msg); // show the real reason
       } finally {
         setLoading(false);
       }
@@ -128,7 +131,6 @@ export default function People() {
     fetchData();
   }, [paginationUrl, searchQuery]);
 
-  //Pagination Handlers
   const handlePrevious = useCallback(() => {
     if (data?.previous) setPaginationUrl(data.previous);
   }, [data]);
@@ -150,17 +152,13 @@ export default function People() {
           />
         </div>
 
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500 whitespace-pre-wrap">{error}</p>}
 
         <div className="text-white backdrop-blur-md ">
-          <DataTable
-            columns={columns}
-            data={data?.results ?? []}
-            loading={loading}
-          />
+          <DataTable columns={columns} data={data?.results ?? []} loading={loading} />
 
           {!searchQuery && data && (
-            <div className="flex  items-center justify-end space-x-2 pt-2">
+            <div className="flex items-center justify-end space-x-2 pt-2">
               <Button
                 className="bg-transparent backdrop-blur-sm"
                 variant="outline"
